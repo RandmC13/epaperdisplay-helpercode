@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import json
+import ffmpeg
+import sys, os
+
+try:
+	video = sys.argv[1]
+except:
+	print("Invalid Argument")
+	exit()
+
+viddir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/')
+
+fileExists = False
+for i in range(len(os.listdir(viddir))):
+	if os.listdir(viddir)[i] == video and os.listdir(viddir)[i].endswith('.mp4'):
+		print("Located File...")
+		fileExists = True
+		break
+
+if not fileExists:
+	print("{} does not exist".format(video))
+	exit()
+
+path = viddir + video
+
+#Check how many frames are in the movie
+frameCount = int(ffmpeg.probe(path)['streams'][0]['nb_frames'])
+print("Frames: {}".format(str(frameCount)))
+
+#Check frame rate of movie
+num1,num2 = ffmpeg.probe(path)['streams'][0]['r_frame_rate'].split('/')
+frameRate = 1000/(int(num1)/int(num2))
+print("FrameRate: {}".format(str(frameRate)))
+
+scaling = int(input("Image Scaling (0=stretch,1=letterbox) => "))
+
+if scaling == 0 or scaling == 1:
+	pass
+else:
+	print("Invalid Stretch Option")
+	exit()
+
+data = {
+	"name": video,
+	"frame": 0,
+	"path": path,
+	"framecount": frameCount-1,
+	"framerate": frameRate,
+	"scaling": scaling
+}
+
+jsonData = json.dumps(data)
+
+with open("config.json", "w") as f:
+	f.write(jsonData)
+
+print("Done!")

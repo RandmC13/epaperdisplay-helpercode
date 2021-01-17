@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+import os, time, sys, random
+import json
+from PIL import Image
+import ffmpeg
+
+def generate_frame(in_filename, out_filename, time, width, height, scaling):
+    (
+        ffmpeg
+        .input(in_filename, ss=time)
+        .filter('scale', width, height, force_original_aspect_ratio=scaling)
+        .filter('pad', width, height, -1, -1)
+        .output(out_filename, vframes=1)
+        .overwrite_output()
+        .run(capture_stdout=True, capture_stderr=True)
+    )
+
+sys.path.insert(1,"./lib")
+
+import epd7in5_V2
+
+epd = epd7in5_V2.EPD()
+
+width = epd7in5_V2.EPD_WIDTH
+height = epd7in5_V2.EPD_HEIGHT
+
+with open("config.json", "r") as f:
+        jsondata = f.read()
+
+data = json.loads(jsondata)
+video = data["name"]
+path = data["path"]
+frame = data["frame"]
+framecount = data["framecount"]
+framerate = data["framerate"]
+scaling = data["scaling"]
+
+try:
+	if frame <= framecount:
+
+		#Convert that frame to timecode
+		msTimecode = "{}ms".format(str(frame*framerate))
+
+		#Use ffmpeg to extract a frame from the movie, crop it, letterbox it and save it as grab.jpg
+		print("Generating Image")
+		generate_frame(path, "grab.jpg", msTimecode, width, height, scaling)
+
+		#Open grab.jpg in PIL
+		print("Loading Image")
+		image = Image.open("grab.jpg")
+
+		#Dither the image into a 1 bit bitmap (just zeros and ones)
+		image = image.convert(mode='1', dither=Image.FLOYDSTEINBERG)
+
+		#Display the image
+		print("Waking Up...")
+		epd.init()
+		print('Displaying frame {}'.format(frame))
+		epd.display(epd.getbuffer(image))
+
+		print("Going to sleep...")
+		epd.sleep()
+		epd.Dev_exit()
+
+		frame += 50
+
+		data["frame"] = frame
+
+		with open("config.json", "w") as f:
+			f.write(json.dumps(data))
+
+
+	else:
+
+		data["frame"] = 1
+
+		with open("config.json", "w") as f:
+			f.write(json.dumps(data))
+
+except:
+	print("Drawing Failed, Quitting...")

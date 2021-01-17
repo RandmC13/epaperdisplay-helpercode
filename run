@@ -1,0 +1,29 @@
+#!/bin/bash
+
+DELAY=${1:-2}
+
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
+
+function ctrl_c() {
+	echo "\nQuitting..."
+	echo "Clear Screen? (y/n)"
+	read choice
+	if [ $choice == "y" ]
+	then
+		/home/pi/epd/clear
+	else
+		/home/pi/epd/sleep
+	fi
+	exit 1
+}
+#Clear Screen
+/home/pi/epd/clear
+
+while [ 1 ]
+do
+	#Update screen every x minutes
+	/home/pi/epd/slowmovie
+	echo "Waiting for "$DELAY" minutes"
+	sleep $DELAY"m"
+done
