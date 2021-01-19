@@ -1,3 +1,4 @@
-videos/
+videos/**
+gallery/**
 config.json
 grab.jpg
