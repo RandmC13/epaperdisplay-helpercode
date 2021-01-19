@@ -1,0 +1,15 @@
+[Unit]
+Description=Slideshow Daemon
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=pi
+ExecStart=/usr/bin/startgallery
+ExecStop=/bin/kill -- $MAINPID
+ExecStop=/home/pi/epd/sleep
+
+[Install]
+WantedBy=multi-user.target

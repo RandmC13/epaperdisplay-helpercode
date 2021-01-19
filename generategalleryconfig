@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import os, sys, random
+import json
+
+gallerypath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gallery/')
+
+pictures = []
+
+for i in range(len(os.listdir(gallerypath))):
+	if os.listdir(gallerypath)[i].endswith('.jpg') or os.listdir(gallerypath)[i].endswith('.png'):
+		pictures.append(os.listdir(gallerypath)[i])
+
+random.shuffle(pictures)
+
+data = {
+	"array": pictures,
+	"index": 0
+}
+
+with open(gallerypath + "config.json", "w") as f:
+	f.write(json.dumps(data))
