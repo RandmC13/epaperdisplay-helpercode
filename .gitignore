@@ -2,3 +2,4 @@ videos/**
 gallery/**
 config.json
 grab.jpg
+logs/errors.log
